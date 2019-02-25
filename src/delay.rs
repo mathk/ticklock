@@ -27,7 +27,6 @@ pub trait Timer {
     /// Start a timer from a delay counter
     fn start(mut self) ->  TimerInstant<Self>;
 
-
     fn has_wrapped(&mut self) -> bool;
     fn get_current(&mut self) -> Self::Size;
 
