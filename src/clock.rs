@@ -141,18 +141,3 @@ impl U32Ext for u32 {
         Duration::from_micros(self as u64)
     }
 }
-
-
-/// The main clock trait
-pub trait Clocks {
-
-    fn get_external_syst_clock(&self) -> Frequency;
-    fn get_core_clock(&self) -> Frequency;
-
-    fn get_syst_clock(&self, syst: & mut SYST) -> Frequency {
-        match syst.get_clock_source() {
-            SystClkSource::External => self.get_external_syst_clock(),
-            SystClkSource::Core => self.get_core_clock()
-        }
-    }
-}

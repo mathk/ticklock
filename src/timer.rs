@@ -1,6 +1,6 @@
-//! Implement delay abstraction.
+//! Provide timer abstraction
 
-#![allow(missing_docs)]
+// #![allow(missing_docs)]
 use crate::peripheral::SYST;
 use crate::peripheral::syst::SystClkSource;
 use crate::clock::Clocks;
@@ -8,11 +8,11 @@ use core::time::Duration;
 use core::cmp::min;
 
 /// A `Timer`` trait to represent count down time.
-/// This is a typical peripheral that has an internal counter that decrease or increase over time until it reach 0.
+/// This is a typical peripheral that has an internal counter that decrease or increase over time until it reach its limit.
 pub trait Timer {
 
-    /// Size of the counter
-    type Size
+    /// Inner type of the counter
+    type U
 
     /// Pause the execution for Duration.
     fn delay(&mut self, d: Duration);
@@ -24,17 +24,26 @@ pub trait Timer {
         self.delay(d);
     }
 
-    /// Start a timer from a delay counter
+    /// Start a timer counter
+    /// The timer is being move and dedicated
+    /// to the instant needs.
     fn start(mut self) ->  TimerInstant<Self>;
 
-    fn has_wrapped(&mut self) -> bool;
-    fn get_current(&mut self) -> Self::Size;
+    /// Stop the counting timer.
+    /// This method is only used by `TimerInstant` to release the timer.
+    fn stop(mut self) -> Self;
 
-/// Capture an instant from a delay.
+    /// Test if the counter has wrapped to its initial value
+    fn has_wrapped(&mut self) -> bool;
+    fn get_current(&mut self) -> Self::U;
+    fn tick(&mut self) -> Duration;
+
+
+/// Capture an instant from a timer.
 pub struct TimerInstant<T>
-where T : Delay
+where T : Timer
 {
-    delay: TDelay,
+    delay: T,
 }
 
 impl<T> SysTickInstant<T>
