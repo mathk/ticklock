@@ -4,12 +4,31 @@ use core::time::Duration;
 use core::ops::Sub;
 use core::convert::Into;
 
+/// Tell if subtractions overflow.
+pub trait CheckedSub {
+
+    /// Return true if no overflow will occur.
+    fn checked_sub_impl(self, rhs: Self) -> bool;
+}
+
+impl CheckedSub for u32 {
+    fn checked_sub_impl(self, rhs: u32) -> bool {
+        self.checked_sub(rhs).is_some()
+    }
+}
+
+impl CheckedSub for i32 {
+    fn checked_sub_impl(self, rhs: i32) -> bool {
+        self.checked_sub(rhs).is_some()
+    }
+}
+
 /// A `Timer` trait to represent count down / up time.
 /// This is a typical peripheral that has an internal counter that decrease or increase over time until it reach its limit.
 pub trait Timer {
 
     /// Inner type of the counter
-    type U : Sub<Output = Self::U> + Into<u32>;
+    type U : Sub<Output = Self::U> + Into<u32> + CheckedSub + Copy;
 
     /// Pause the execution for Duration.
     fn delay(&mut self, d: Duration);
@@ -68,7 +87,14 @@ where T : Timer
         if self.delay.has_wrapped() {
             panic!("Can not tell the elapse time as we have wrapped.")
         }
-        self.delay.tick() * (self.delay.limit_value() - self.delay.get_current()).into()
+        let limit = self.delay.limit_value();
+        let current = self.delay.get_current();
+
+        if limit.checked_sub_impl(current) {
+            self.delay.tick() * (limit - current).into()
+        } else {
+            self.delay.tick() * (current - limit).into()
+        }
     }
 
     /// Release the instant and stop the timer
