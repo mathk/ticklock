@@ -2,5 +2,7 @@
 //! base quantity in embedded system.
 
 #![no_std]
+#![deny(missing_docs)]
 
 pub mod timer;
+pub mod clock;

@@ -1,16 +1,15 @@
 //! Provide timer abstraction
 
-// #![allow(missing_docs)]
 use core::time::Duration;
 use core::ops::Sub;
 use core::convert::Into;
 
-/// A `Timer`` trait to represent count down time.
+/// A `Timer` trait to represent count down / up time.
 /// This is a typical peripheral that has an internal counter that decrease or increase over time until it reach its limit.
 pub trait Timer {
 
     /// Inner type of the counter
-    type U : Sub<Output impl Into<u32>>;
+    type U : Sub<Output = Self::U> + Into<u32>;
 
     /// Pause the execution for Duration.
     fn delay(&mut self, d: Duration);
@@ -33,8 +32,16 @@ pub trait Timer {
 
     /// Test if the counter has wrapped to its initial value
     fn has_wrapped(&mut self) -> bool;
+
+    /// The maximum / minimum value.
+    /// For count down timer this should be the maximum value. Or the reload value.
+    /// For count up limit_value should return 0.
     fn limit_value(&self) -> Self::U;
+
+    /// Return the current counter value.
     fn get_current(&mut self) -> Self::U;
+
+    /// Return the duration between 2 counted value.
     fn tick(&mut self) -> Duration;
 }
 
@@ -49,12 +56,14 @@ where T : Timer
 impl<T> TimerInstant<T>
 where T : Timer
 {
-    fn now(delay: T) -> Self {
+    /// Capture an Instant with a given timer.
+    pub fn now(delay: T) -> Self {
         TimerInstant {
             delay,
         }
     }
 
+    /// Give the elapsed time from the Instant.
     pub fn elapsed(&mut self) -> Duration {
         if self.delay.has_wrapped() {
             panic!("Can not tell the elapse time as we have wrapped.")
@@ -62,6 +71,7 @@ where T : Timer
         self.delay.tick() * (self.delay.limit_value() - self.delay.get_current()).into()
     }
 
+    /// Release the instant and stop the timer
     pub fn stop(self) -> T {
         self.delay.stop()
     }

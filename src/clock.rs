@@ -2,13 +2,10 @@
 //!
 //! Access the SysTick peripheral and provide timing abstraction
 
-#![allow(missing_docs)]
 use core::ops::Div;
 use core::time::Duration;
-use crate::peripheral::syst::SystClkSource;
-use crate::peripheral::SYST;
 
-
+/// Represent frequency range magnitude
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u64)]
 pub (crate) enum FreqRange {
@@ -20,7 +17,7 @@ pub (crate) enum FreqRange {
 
 /// Frequency abstraction
 ///
-/// Using the frequency we can calculate the counter for some delay
+/// Using the frequency we can calculate duration
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Frequency {
     pub (crate) resolution: FreqRange,
@@ -38,14 +35,18 @@ impl Frequency {
         }
     }
 
+    /// Return the duration of single clock pulse.
     pub const fn tick(&self) -> Duration {
         Duration::from_nanos(1_000_000_000_000u64 * self.denominator as u64 / (self.numerator as u64 * self.resolution as u64))
     }
 
+    /// Return the number of entire clock pulse within a duration
     pub const fn ticks_in(&self, d: Duration) -> u64 {
         (d.as_secs() * 1_000_000_000u64 + d.subsec_nanos() as u64) * self.resolution as u64 * self.numerator as u64 / (self.denominator as u64 * 1_000_000_000_000u64)
     }
 
+    /// Change the frequency range in Hz.
+    /// This is useful only for printing.
     pub fn into_hertz(&self) -> Frequency {
         Frequency {
             resolution: FreqRange::Hertz,
@@ -54,6 +55,8 @@ impl Frequency {
         }
     }
 
+    /// Change the frequency range in KHz.
+    /// This is useful only for printing.
     pub fn into_kilo(&self) -> Frequency {
         Frequency {
             resolution: FreqRange::KiloHertz,
@@ -62,6 +65,8 @@ impl Frequency {
         }
     }
 
+    /// Change the frequency range in MHz.
+    /// This is useful only for printing.
     pub fn into_mega(&self) -> Frequency {
         Frequency {
             resolution: FreqRange::MegaHertz,
@@ -70,6 +75,8 @@ impl Frequency {
         }
     }
 
+    /// Change the frequency range in mhz.
+    /// This is useful only for printing.
     pub fn into_milli(&self) -> Frequency {
         Frequency {
             resolution: FreqRange::MilliHertz,
@@ -82,6 +89,7 @@ impl Frequency {
 impl Div<u32> for Frequency {
     type Output = Frequency;
 
+    /// Allow to scale down a frequency
     fn div(self, rhs: u32) -> Frequency {
         assert!(rhs != 0);
         Frequency {
