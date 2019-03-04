@@ -2,6 +2,7 @@
 //!
 //! Access the SysTick peripheral and provide timing abstraction
 
+use core::cmp;
 use core::ops::Div;
 use core::time::Duration;
 
@@ -132,6 +133,9 @@ pub trait U32Ext {
 
     /// Wrap in microsecond Duration
     fn s(self) -> Duration;
+
+    /// Make the value stay in between 2 bounds
+    fn clamp(self, min: u32, max: u32) -> u32;
 }
 
 impl U32Ext for u32 {
@@ -158,6 +162,10 @@ impl U32Ext for u32 {
 
     fn us(self) -> Duration {
         Duration::from_micros(self as u64)
+    }
+
+    fn clamp(self, min: u32, max: u32) -> u32 {
+        cmp::min(cmp::max(self, min), max)
     }
 }
 
@@ -198,6 +206,13 @@ mod test {
         assert_eq!(1.mhz() / 500.khz(), 2);
         assert_eq!(1.mhz() / 1000.khz(), 1);
         assert_eq!(1.mhz() / 10000.khz(), 0);
+    }
+
+    #[test]
+    fn clamp() {
+        assert_eq!(2.clamp(1, 3), 2);
+        assert_eq!(20.clamp(1, 3), 3);
+        assert_eq!(0.clamp(1, 3), 1);
     }
 
 }
