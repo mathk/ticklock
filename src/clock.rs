@@ -100,6 +100,17 @@ impl Div<u32> for Frequency {
     }
 }
 
+impl Div<Frequency> for Frequency {
+    type Output = u32;
+
+    /// Give the scale between 2 frequency.
+    /// Particularly useful for selecting pre-scale value on MCU.
+    fn div(self, rhs: Frequency) -> u32 {
+        assert!(rhs.numerator != 0);
+        (self.resolution as u32 / rhs.resolution as u32) * (self.numerator * rhs.denominator) / (self.denominator * rhs.numerator)
+    }
+}
+
 
 /// Extension trait that adds convenience methods to the `u32` type
 pub trait U32Ext {
