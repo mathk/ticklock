@@ -172,6 +172,7 @@ impl U32Ext for u32 {
 
 mod test {
 
+    #[allow(unused_imports)]
     use super::{FreqRange, U32Ext};
 
     #[test]
