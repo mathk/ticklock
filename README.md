@@ -1,3 +1,5 @@
+[![build](https://travis-ci.com/mathk/ticklock.svg?branch=master)](https://travis-ci.com/mathk/ticklock)
+
 # `ticklock`
 
 > Timer, Duration, Instant abstraction for embedded device.
