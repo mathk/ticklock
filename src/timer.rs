@@ -25,7 +25,10 @@ impl CheckedSub for i32 {
 
 /// A `Timer` trait to represent count down / up time.
 /// This is a typical peripheral that has an internal counter that decrease or increase over time until it reach its limit.
-pub trait Timer {
+pub trait Timer
+where
+    Self : Sized
+{
 
     /// Inner type of the counter
     type U : Sub<Output = Self::U> + Into<u32> + CheckedSub + Copy;
@@ -43,7 +46,7 @@ pub trait Timer {
     /// Start a timer counter
     /// The timer is being move and dedicated
     /// to the instant needs.
-    fn start<T: Timer>(self) ->  TimerInstant<T>;
+    fn start(self) ->  TimerInstant<Self>;
 
     /// Stop the counting timer.
     /// This method is only used by `TimerInstant` to release the timer.
