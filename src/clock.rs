@@ -19,11 +19,36 @@ pub (crate) enum FreqRange {
 /// Frequency abstraction
 ///
 /// Using the frequency we can calculate duration
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug)]
 pub struct Frequency {
     pub (crate) resolution: FreqRange,
     pub (crate) numerator: u32,
     pub (crate) denominator: u32,
+}
+
+impl PartialEq for Frequency {
+    fn eq(&self, other: &Frequency) -> bool {
+        let left = self.into_hertz();
+        let other = other.into_hertz();
+        left.numerator == other.numerator
+    }
+}
+
+impl Eq for Frequency {}
+
+
+impl Ord for Frequency {
+    fn cmp(&self, other: &Frequency) -> cmp::Ordering {
+        let left = self.into_hertz();
+        let other = other.into_hertz();
+        left.numerator.cmp(&other.numerator)
+    }
+}
+
+impl PartialOrd for Frequency {
+    fn partial_cmp(&self, other: &Frequency) -> Option<cmp::Ordering> {
+        Some(self.cmp(&other))
+    }
 }
 
 impl Frequency {
@@ -214,6 +239,14 @@ mod test {
         assert_eq!(2.clamp(1, 3), 2);
         assert_eq!(20.clamp(1, 3), 3);
         assert_eq!(0.clamp(1, 3), 1);
+    }
+
+    #[test]
+    fn comp() {
+        assert!(1.mhz() < 2000.khz());
+        assert!(1.mhz() == 1000.khz());
+        assert!(1.mhz() >= 1000.khz());
+        assert!(1.mhz() <= 1000.khz());
     }
 
 }
