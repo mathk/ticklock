@@ -3,7 +3,7 @@
 //! Access the SysTick peripheral and provide timing abstraction
 
 use core::cmp;
-use core::ops::Div;
+use core::ops::{Div, Mul};
 use core::time::Duration;
 
 /// Represent frequency range magnitude
@@ -51,6 +51,20 @@ impl PartialOrd for Frequency {
     }
 }
 
+macro_rules! into_x {
+    ($name:ident, $range:ident) => {
+        /// Change the frequency range in $range.
+        /// This is useful only for printing.
+        pub fn $name(&self) -> Frequency {
+            Frequency {
+                resolution: FreqRange::$range,
+                numerator: (self.resolution as u32 * self.numerator) / (FreqRange::$range as u32 * self.denominator),
+                denominator: 1,
+            }
+        }
+    }
+}
+
 impl Frequency {
 
     fn new(value: u32, resolution: FreqRange) -> Frequency {
@@ -71,45 +85,11 @@ impl Frequency {
         (d.as_secs() * 1_000_000_000u64 + d.subsec_nanos() as u64) * self.resolution as u64 * self.numerator as u64 / (self.denominator as u64 * 1_000_000_000_000u64)
     }
 
-    /// Change the frequency range in Hz.
-    /// This is useful only for printing.
-    pub fn into_hertz(&self) -> Frequency {
-        Frequency {
-            resolution: FreqRange::Hertz,
-            numerator: (self.resolution as u32 * self.numerator) / (FreqRange::Hertz as u32 * self.denominator),
-            denominator: 1,
-        }
-    }
+    into_x!(into_hertz, Hertz);
+    into_x!(into_kilo, KiloHertz);
+    into_x!(into_mega, MegaHertz);
+    into_x!(into_milli, MilliHertz);
 
-    /// Change the frequency range in KHz.
-    /// This is useful only for printing.
-    pub fn into_kilo(&self) -> Frequency {
-        Frequency {
-            resolution: FreqRange::KiloHertz,
-            numerator: (self.resolution as u32 * self.numerator) / (FreqRange::KiloHertz as u32 * self.denominator),
-            denominator: 1,
-        }
-    }
-
-    /// Change the frequency range in MHz.
-    /// This is useful only for printing.
-    pub fn into_mega(&self) -> Frequency {
-        Frequency {
-            resolution: FreqRange::MegaHertz,
-            numerator: (self.resolution as u32 * self.numerator) / (FreqRange::MegaHertz as u32 * self.denominator),
-            denominator: 1,
-        }
-    }
-
-    /// Change the frequency range in mhz.
-    /// This is useful only for printing.
-    pub fn into_milli(&self) -> Frequency {
-        Frequency {
-            resolution: FreqRange::MilliHertz,
-            numerator: (self.resolution as u32 * self.numerator) / (FreqRange::MilliHertz as u32 * self.denominator),
-            denominator: 1,
-        }
-    }
 }
 
 impl Div<u32> for Frequency {
@@ -122,6 +102,19 @@ impl Div<u32> for Frequency {
             resolution: self.resolution,
             numerator: self.numerator,
             denominator: self.denominator * rhs
+        }
+    }
+}
+
+impl Mul<u32> for Frequency {
+    type Output = Frequency;
+
+    /// Allow to scale down a frequency
+    fn mul(self, rhs: u32) -> Frequency {
+        Frequency {
+            resolution: self.resolution,
+            numerator: self.numerator * rhs,
+            denominator: self.denominator
         }
     }
 }
@@ -201,8 +194,16 @@ mod test {
     use super::{FreqRange, U32Ext};
 
     #[test]
+    fn multiply() {
+        assert_eq!((1.mhz() * 2).numerator, 2);
+        assert_eq!((1.mhz() * 8000).numerator, 8000);
+        assert_eq!((1.khz() * 80000).into_mega().resolution, FreqRange::MegaHertz);
+        assert_eq!((1.khz() * 80000).into_mega().numerator, 80);
+
+    }
+
+    #[test]
     fn divide() {
-        assert_eq!((1.mhz() / 2).into_kilo().resolution, FreqRange::KiloHertz);
         assert_eq!((1.mhz() / 2).into_kilo().numerator, 500);
         assert_eq!((1.mhz() / 8000).into_hertz().resolution, FreqRange::Hertz);
         assert_eq!((1.mhz() / 8000).into_hertz().numerator, 125);
