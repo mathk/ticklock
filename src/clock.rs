@@ -1,7 +1,7 @@
 //! Clock trait for Cortex-M.
 //!
 //! Access the SysTick peripheral and provide timing abstraction
-
+extern crate cast;
 use core::cmp;
 use core::ops::{Div, Mul};
 use core::time::Duration;
@@ -56,10 +56,18 @@ macro_rules! into_x {
         /// Change the frequency range in $range.
         /// This is useful only for printing.
         pub fn $name(&self) -> Frequency {
-            Frequency {
-                resolution: FreqRange::$range,
-                numerator: (self.resolution as u32 * self.numerator) / (FreqRange::$range as u32 * self.denominator),
-                denominator: 1,
+            if let Some(num) = (self.resolution as u32).checked_mul(self.numerator) {
+                Frequency {
+                    resolution: FreqRange::$range,
+                    numerator: (num / (FreqRange::$range as u32) / self.denominator),
+                    denominator: 1,
+                }
+            } else {
+                Frequency {
+                    resolution: FreqRange::$range,
+                    numerator: cast::u32((self.resolution as u64  * self.numerator as u64) / (FreqRange::$range as u64 * self.denominator as u64)).unwrap(),
+                    denominator: 1,
+                }
             }
         }
     }
