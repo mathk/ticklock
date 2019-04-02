@@ -127,6 +127,15 @@ impl Mul<u32> for Frequency {
     }
 }
 
+impl Mul<Frequency> for u32 {
+    type Output = Frequency;
+
+    /// Allow to scale down a frequency
+    fn mul(self, rhs: Frequency) -> Frequency {
+        rhs * self
+    }
+}
+
 impl Div<Frequency> for Frequency {
     type Output = u32;
 
@@ -204,6 +213,7 @@ mod test {
     #[test]
     fn multiply() {
         assert_eq!((1.mhz() * 2).numerator, 2);
+        assert_eq!((2 * 1.mhz()).numerator, 2);
         assert_eq!((1.mhz() * 8000).numerator, 8000);
         assert_eq!((1.khz() * 80000).into_mega().resolution, FreqRange::MegaHertz);
         assert_eq!((1.khz() * 80000).into_mega().numerator, 80);

@@ -10,7 +10,7 @@ license = "MIT OR Apache-2.0"
 name = "ticklock"
 readme = "README.md"
 repository = "https://github.com/mathk/ticklock"
-version = "0.0.5"
+version = "0.0.6"
 
 [dependencies.cast]
 version  = "0.2.2"
