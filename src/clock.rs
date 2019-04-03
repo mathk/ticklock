@@ -1,10 +1,10 @@
 //! Clock trait for Cortex-M.
 //!
 //! Access the SysTick peripheral and provide timing abstraction
-extern crate cast;
 use core::cmp;
 use core::ops::{Div, Mul};
 use core::time::Duration;
+use cast;
 
 /// Represent frequency range magnitude
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

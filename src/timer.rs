@@ -1,5 +1,7 @@
 //! Provide timer abstraction
 
+use nb;
+use void::Void;
 use core::time::Duration;
 use core::ops::Sub;
 use core::convert::Into;
@@ -35,6 +37,9 @@ where
 
     /// Pause the execution for Duration.
     fn delay(&mut self, d: Duration);
+
+    /// None blocking variant of delay.
+    fn wait(&mut self, d: Duration) -> nb::Result<(), Void>;
 
     /// Pause execution assuming interrupt is enabled
     /// and correctly handler.
