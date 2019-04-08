@@ -38,9 +38,6 @@ where
     /// Pause the execution for Duration.
     fn delay(&mut self, d: Duration);
 
-    /// None blocking variant of delay.
-    fn wait(&mut self, d: Duration) -> nb::Result<(), Void>;
-
     /// Pause execution assuming interrupt is enabled
     /// and correctly handler.
     fn delay_with_interrupt(&mut self, d: Duration) {
@@ -87,6 +84,15 @@ where T : Timer
     pub fn now(delay: T) -> Self {
         TimerInstant {
             delay,
+        }
+    }
+
+    /// None blocking variant of delay.
+    pub fn wait(&mut self, d: Duration) -> nb::Result<(), Void> {
+        if self.elapsed() < d {
+            Err(nb::Error::WouldBlock)
+        } else {
+            Ok(())
         }
     }
 
